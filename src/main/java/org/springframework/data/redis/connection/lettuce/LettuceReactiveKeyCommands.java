@@ -126,7 +126,7 @@ public class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		return connection.execute(cmd -> Flux.from(patterns).flatMap(pattern -> {
 
 			Assert.notNull(pattern, "Pattern must not be null!");
-
+			// TODO: stream elements instead of collection
 			return cmd.keys(pattern).collectList().map(value -> new MultiValueResponse<>(pattern, value));
 		}));
 	}
