@@ -13,26 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.serializer;
-
-import reactor.core.publisher.Mono;
+package org.springframework.data.redis;
 
 import java.nio.ByteBuffer;
+import java.util.UUID;
 
 /**
- * Function to deserialize a {@link ByteBuffer} to an {@code object}.
- * <p>
- * Implementing classes are required to use deferred deserialization.
+ * Implementation of {@link ObjectFactory} that returns random {@link ByteBuffer}s.
  *
  * @author Mark Paluch
- * @since 2.0
  */
-@FunctionalInterface
-public interface DeserializerFunction<T> {
+public class ByteBufferObjectFactory implements ObjectFactory<ByteBuffer> {
 
-	/**
-	 * @param byteBuffer the buffer containing data to deserialize.
-	 * @return
-	 */
-	Mono<T> deserialize(ByteBuffer byteBuffer);
+	public ByteBuffer instance() {
+		return ByteBuffer.wrap(UUID.randomUUID().toString().getBytes());
+	}
 }

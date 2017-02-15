@@ -15,15 +15,16 @@
  */
 package org.springframework.data.redis.core;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.springframework.data.redis.ByteBufferObjectFactory;
 import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.LongObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.PersonObjectFactory;
-import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -31,13 +32,12 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
-import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
  * Parameters for testing implementations of {@link ReactiveRedisTemplate}
- * 
+ *
  * @author Mark Paluch
  */
 abstract public class ReactiveOperationsTestParams {
@@ -47,7 +47,7 @@ abstract public class ReactiveOperationsTestParams {
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
 		ObjectFactory<Long> longFactory = new LongObjectFactory();
 		ObjectFactory<Double> doubleFactory = new DoubleObjectFactory();
-		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
+		ObjectFactory<ByteBuffer> rawFactory = new ByteBufferObjectFactory();
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
 
 		// XStream serializer

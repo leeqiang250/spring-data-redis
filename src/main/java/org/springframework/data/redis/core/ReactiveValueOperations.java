@@ -15,16 +15,16 @@
  */
 package org.springframework.data.redis.core;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Reactive Redis operations for simple (or in Redis terminology 'string') values.
- * 
+ *
  * @author Mark Paluch
  * @since 2.0
  */
@@ -48,6 +48,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param unit must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
+	// TODO: How about Duration?
 	Mono<Boolean> set(K key, V value, long timeout, TimeUnit unit);
 
 	/**
@@ -60,12 +61,21 @@ public interface ReactiveValueOperations<K, V> {
 	Mono<Boolean> setIfAbsent(K key, V value);
 
 	/**
+	 * Set {@code key} to hold the string {@code value} if {@code key} is present.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	Mono<Boolean> setIfPresent(K key, V value);
+
+	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
 	 *
 	 * @param map must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/mset">Redis Documentation: MSET</a>
 	 */
-	Mono<Void> multiSet(Map<? extends K, ? extends V> map);
+	Mono<Boolean> multiSet(Map<? extends K, ? extends V> map);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple} only if the provided key does
@@ -86,7 +96,7 @@ public interface ReactiveValueOperations<K, V> {
 
 	/**
 	 * Set {@code value} of {@code key} and return its old value.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 */
@@ -94,30 +104,11 @@ public interface ReactiveValueOperations<K, V> {
 
 	/**
 	 * Get multiple {@code keys}. Values are returned in the order of the requested keys.
-	 * 
+	 *
 	 * @param keys must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/mget">Redis Documentation: MGET</a>
 	 */
-	// TODO: null elements?
-	Flux<V> multiGet(Collection<K> keys);
-
-	/**
-	 * Increment an integer value stored as string value under {@code key} by {@code delta}.
-	 * 
-	 * @param key must not be {@literal null}.
-	 * @param delta
-	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
-	 */
-	Mono<Long> increment(K key, long delta);
-
-	/**
-	 * Increment a floating point number value stored as string value under {@code key} by {@code delta}.
-	 * 
-	 * @param key must not be {@literal null}.
-	 * @param delta
-	 * @see <a href="http://redis.io/commands/incrbyfloar">Redis Documentation: INCRBYFLOAT</a>
-	 */
-	Mono<Double> increment(K key, double delta);
+	Mono<List<V>> multiGet(Collection<K> keys);
 
 	/**
 	 * Append a {@code value} to {@code key}.
@@ -126,7 +117,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param value
 	 * @see <a href="http://redis.io/commands/append">Redis Documentation: APPEND</a>
 	 */
-	Mono<Integer> append(K key, String value);
+	Mono<Long> append(K key, String value);
 
 	/**
 	 * Get a substring of value of {@code key} between {@code begin} and {@code end}.
@@ -146,7 +137,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param offset
 	 * @see <a href="http://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
 	 */
-	Mono<Void> set(K key, V value, long offset);
+	Mono<Long> set(K key, V value, long offset);
 
 	/**
 	 * Get the length of the value stored at {@code key}.

@@ -22,12 +22,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.serializer.ReactiveSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
  * Interface that specified a basic set of Redis operations, implemented by {@link ReactiveRedisTemplate}. Not often
  * used but a useful option for extensibility and testability (as it can be easily mocked or stubbed).
- * 
+ *
  * @author Mark Paluch
  * @since 2.0
  */
@@ -41,7 +42,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 * for the Redis storage. Note: Callback code is not supposed to handle transactions itself! Use an appropriate
 	 * transaction manager. Generally, callback code must not touch any Connection lifecycle methods, like close, to let
 	 * the template do its work.
-	 * 
+	 *
 	 * @param <T> return type
 	 * @param action callback object that specifies the Redis action
 	 * @return a result object returned by the action or <tt>null</tt>
@@ -253,17 +254,21 @@ public interface ReactiveRedisOperations<K, V> {
 	// operation types
 	/**
 	 * Returns the operations performed on simple values (or Strings in Redis terminology).
-	 * 
+	 *
 	 * @return value operations
 	 */
 	ReactiveValueOperations<K, V> opsForValue();
 
 	/**
 	 * Returns the operations performed on simple values (or Strings in Redis terminology) bound to the given key.
-	 * 
+	 *
 	 * @param key Redis key
 	 * @return value operations bound to the given key
 	 */
-	//BoundValueOperations<K, V> boundValueOps(K key);
+	// BoundValueOperations<K, V> boundValueOps(K key);
 
+	/**
+	 * @return the {@link ReactiveSerializationContext}.
+	 */
+	ReactiveSerializationContext<K, V> serialization();
 }

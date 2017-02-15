@@ -20,19 +20,32 @@ import reactor.core.publisher.Mono;
 import java.nio.ByteBuffer;
 
 /**
- * Function to serialize an {@code object} to a {@link ByteBuffer}.
- * <p>
- * Implementing classes are required to use deferred serialization.
- * 
+ * Strategy interface that specifies a deserializer that can deserialize a binary element representation stored in Redis
+ * into an object.
+ *
  * @author Mark Paluch
  * @since 2.0
  */
 @FunctionalInterface
-public interface SerializerFunction<T> {
+public interface RedisElementReader<T> {
 
 	/**
-	 * @param object to serialize
-	 * @return
+	 * Deserialize a {@link ByteBuffer} into the according type.
+	 *
+	 * @param buffer must not be {@literal null}.
+	 * @return the deserialized value.
 	 */
-	Mono<ByteBuffer> serialize(T object);
+	T read(ByteBuffer buffer);
+
+	/**
+	 * Deferred deserialization wrapping the result in a {@link Mono}.
+	 * <p>
+	 * Implementing classes can implement their own deferred deserialization. Defaults to scalar value deserialization.
+	 *
+	 * @param buffer must not be {@literal null}.
+	 * @return the deserialized value.
+	 */
+	default Mono<T> readMono(ByteBuffer buffer) {
+		return Mono.just(buffer).map(this::read);
+	}
 }
