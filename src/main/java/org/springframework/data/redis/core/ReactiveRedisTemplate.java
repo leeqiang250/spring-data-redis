@@ -71,6 +71,7 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 
 	// cache singleton objects (where possible)
 	private ReactiveValueOperations<K, V> valueOps;
+	private ReactiveGeoOperations<K, V> geoOps;
 
 	/**
 	 * Construct a new {@link ReactiveRedisTemplate} instance.
@@ -262,6 +263,16 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 		}
 
 		return valueOps;
+	}
+
+	@Override
+	public ReactiveGeoOperations<K, V> opsForGeo() {
+
+		if (geoOps == null) {
+			geoOps = new DefaultReactiveGeoOperations<K, V>(this);
+		}
+
+		return geoOps;
 	}
 
 	// -------------------------------------------------------------------------

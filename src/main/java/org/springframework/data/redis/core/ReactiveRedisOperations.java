@@ -185,12 +185,11 @@ public interface ReactiveRedisOperations<K, V> {
 	ReactiveValueOperations<K, V> opsForValue();
 
 	/**
-	 * Returns the operations performed on simple values (or Strings in Redis terminology) bound to the given key.
+	 * Returns geospatial specific operations interface.
 	 *
-	 * @param key Redis key
-	 * @return value operations bound to the given key
+	 * @return never {@literal null}.
 	 */
-	// BoundValueOperations<K, V> boundValueOps(K key);
+	ReactiveGeoOperations<K, V> opsForGeo();
 
 	/**
 	 * @return the {@link ReactiveSerializationContext}.
