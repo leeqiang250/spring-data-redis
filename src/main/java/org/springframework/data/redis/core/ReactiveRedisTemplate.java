@@ -21,6 +21,8 @@ import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Proxy;
 import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 import org.reactivestreams.Publisher;
@@ -357,6 +359,9 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 	// Methods dealing with Redis keys
 	// -------------------------------------------------------------------------
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#hasKey(java.lang.Object)
+	 */
 	public Mono<Boolean> hasKey(K key) {
 
 		Assert.notNull(key, "Key must not be null!");
@@ -364,6 +369,9 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 		return createMono(connection -> connection.keyCommands().exists(rawKey(key)));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#type(java.lang.Object)
+	 */
 	public Mono<DataType> type(K key) {
 
 		Assert.notNull(key, "Key must not be null!");
@@ -371,6 +379,9 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 		return createMono(connection -> connection.keyCommands().type(rawKey(key)));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#keys(java.lang.Object)
+	 */
 	public Flux<K> keys(K pattern) {
 
 		Assert.notNull(pattern, "Pattern must not be null!");
@@ -380,10 +391,16 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 				.map(this::readKey);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#randomKey()
+	 */
 	public Mono<K> randomKey() {
 		return createMono(connection -> connection.keyCommands().randomKey()).map(this::readKey);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#rename(java.lang.Object, java.lang.Object)
+	 */
 	public Mono<Boolean> rename(K oldKey, K newKey) {
 
 		Assert.notNull(oldKey, "Old key must not be null!");
@@ -392,6 +409,9 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 		return createMono(connection -> connection.keyCommands().rename(rawKey(oldKey), rawKey(newKey)));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#renameIfAbsent(java.lang.Object, java.lang.Object)
+	 */
 	public Mono<Boolean> renameIfAbsent(K oldKey, K newKey) {
 
 		Assert.notNull(oldKey, "Old key must not be null!");
@@ -401,6 +421,9 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#delete(java.lang.Object[])
+	 */
 	public Mono<Long> delete(K... keys) {
 
 		Assert.notNull(keys, "Keys must not be null!");
@@ -413,6 +436,9 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 		return createMono(connection -> listOfKeys.flatMap(rawKeys -> connection.keyCommands().mDel(rawKeys)));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#delete(org.reactivestreams.Publisher)
+	 */
 	public Mono<Long> delete(Publisher<K> keys) {
 
 		Assert.notNull(keys, "Keys must not be null!");
@@ -420,6 +446,84 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 		return createMono(connection -> connection.keyCommands() //
 				.del(Flux.from(keys).map(this::rawKey).map(KeyCommand::new)) //
 				.map(CommandResponse::getOutput));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#expire(java.lang.Object, java.time.Duration)
+	 */
+	@Override
+	public Mono<Boolean> expire(K key, Duration timeout) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		if (timeout.getNano() == 0) {
+			return createMono(connection -> connection.keyCommands() //
+					.expire(rawKey(key), timeout));
+		}
+
+		return createMono(connection -> connection.keyCommands().pExpire(rawKey(key), timeout));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#expireAt(java.lang.Object, java.time.Instant)
+	 */
+	@Override
+	public Mono<Boolean> expireAt(K key, Instant expireAt) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(expireAt, "Expire at must not be null!");
+
+		if (expireAt.getNano() == 0) {
+			return createMono(connection -> connection.keyCommands() //
+					.expireAt(rawKey(key), expireAt));
+		}
+
+		return createMono(connection -> connection.keyCommands().pExpireAt(rawKey(key), expireAt));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#persist(java.lang.Object)
+	 */
+	@Override
+	public Mono<Boolean> persist(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createMono(connection -> connection.keyCommands().persist(rawKey(key)));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#getExpire(java.lang.Object)
+	 */
+	@Override
+	public Mono<Duration> getExpire(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createMono(connection -> connection.keyCommands().pTtl(rawKey(key)).flatMap(expiry -> {
+
+			if (expiry == -1) {
+				return Mono.just(Duration.ZERO);
+			}
+
+			if (expiry == -2) {
+				return Mono.empty();
+			}
+
+			return Mono.just(Duration.ofMillis(expiry));
+		}));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#move(java.lang.Object, int)
+	 */
+	@Override
+	public Mono<Boolean> move(K key, int dbIndex) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createMono(connection -> connection.keyCommands().move(rawKey(key), dbIndex));
 	}
 
 	// -------------------------------------------------------------------------
@@ -459,6 +563,9 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 				new CloseSuppressingInvocationHandler(reactiveRedisConnection));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#serialization()
+	 */
 	@Override
 	public ReactiveSerializationContext<K, V> serialization() {
 		return serializationContext;
@@ -493,27 +600,42 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 			stringTuple = new RedisSerializerTupleAdapter<>(stringSerializer);
 		}
 
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.serializer.ReactiveSerializationContext#key()
+		 */
 		@Override
 		public SerializationTuple<K> key() {
 			return keyTuple;
 		}
 
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.serializer.ReactiveSerializationContext#value()
+		 */
 		@Override
 		public SerializationTuple<V> value() {
 			return valueTuple;
 		}
 
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.serializer.ReactiveSerializationContext#string()
+		 */
 		@Override
 		public SerializationTuple<String> string() {
 			return stringTuple;
 		}
 
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.serializer.ReactiveSerializationContext#hashKey()
+		 */
 		@Override
 		@SuppressWarnings("unchecked")
 		public <HK> SerializationTuple<HK> hashKey() {
 			return (SerializationTuple) hashKeyTuple;
 		}
 
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.serializer.ReactiveSerializationContext#hashValue()
+		 */
 		@Override
 		@SuppressWarnings("unchecked")
 		public <HV> SerializationTuple<HV> hashValue() {
@@ -588,11 +710,17 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 			return new RedisSerializerTupleAdapter<>(redisSerializer);
 		}
 
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationTuple#reader()
+		 */
 		@Override
 		public RedisElementReader<T> reader() {
 			return reader;
 		}
 
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationTuple#writer()
+		 */
 		@Override
 		public RedisElementWriter<T> writer() {
 			return writer;
@@ -604,6 +732,9 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 
 		private final RedisSerializer<T> serializer;
 
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.serializer.RedisElementReader#read(java.nio.ByteBuffer)
+		 */
 		@Override
 		public T read(ByteBuffer buffer) {
 
@@ -623,6 +754,9 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 
 		private final RedisSerializer<T> serializer;
 
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.serializer.RedisElementWriter#write(java.lang.Object)
+		 */
 		@Override
 		public ByteBuffer write(T value) {
 

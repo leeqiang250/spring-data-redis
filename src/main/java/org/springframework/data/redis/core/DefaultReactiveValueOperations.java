@@ -87,7 +87,6 @@ public class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperat
 	@Override
 	public Mono<Boolean> multiSet(Map<? extends K, ? extends V> map) {
 
-		// TODO: Cluster
 		Assert.notNull(map, "Map must not be null!");
 
 		return createMono(connection -> {
@@ -102,7 +101,6 @@ public class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperat
 	@Override
 	public Mono<Boolean> multiSetIfAbsent(Map<? extends K, ? extends V> map) {
 
-		// TODO: Cluster
 		Assert.notNull(map, "Map must not be null!");
 
 		return createMono(connection -> {

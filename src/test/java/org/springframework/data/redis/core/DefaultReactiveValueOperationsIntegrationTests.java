@@ -21,6 +21,7 @@ import static org.junit.Assume.*;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -104,13 +105,19 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.set(key, value, 10, TimeUnit.MINUTES)).expectNext(true).expectComplete()
+		StepVerifier.create(valueOperations.set(key, value, 10, TimeUnit.SECONDS)).expectNext(true).expectComplete()
 				.verify();
 
 		StepVerifier.create(valueOperations.get(key)).expectNext(value).expectComplete().verify();
 
-		// TODO: Expire/TTL on Connection-Factory.
-		// StepVerifier.create(redisTemplate.ttl(key)).expectNext(value).expectComplete().verify();
+		StepVerifier.create(redisTemplate.getExpire(key)) //
+				.expectNextMatches(actual -> {
+					assertThat(actual).isGreaterThan(Duration.ofSeconds(8));
+					return true;
+				}) //
+				.expectComplete() //
+				.verify();
+
 	}
 
 	@Test // DATAREDIS-602

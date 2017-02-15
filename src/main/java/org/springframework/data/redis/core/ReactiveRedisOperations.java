@@ -18,12 +18,12 @@ package org.springframework.data.redis.core;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+import java.time.Instant;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.serializer.ReactiveSerializationContext;
-import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
  * Interface that specified a basic set of Redis operations, implemented by {@link ReactiveRedisTemplate}. Not often
@@ -61,24 +61,6 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @see <a href="http://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 */
 	Mono<Boolean> hasKey(K key);
-
-	/**
-	 * Delete given {@code key}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @return The number of keys that were removed.
-	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
-	 */
-	Mono<Long> delete(K... key);
-
-	/**
-	 * Delete given {@code keys}.
-	 *
-	 * @param keys must not be {@literal null}.
-	 * @return The number of keys that were removed.
-	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
-	 */
-	Mono<Long> delete(Publisher<K> keys);
 
 	/**
 	 * Determine the type stored at {@code key}.
@@ -126,23 +108,40 @@ public interface ReactiveRedisOperations<K, V> {
 	Mono<Boolean> renameIfAbsent(K oldKey, K newKey);
 
 	/**
-	 * Set time to live for given {@code key}..
+	 * Delete given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param timeout
-	 * @param unit must not be {@literal null}.
-	 * @return
+	 * @return The number of keys that were removed.
+	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
-	// Mono<Boolean> expire(K key, long timeout, TimeUnit unit);
+	Mono<Long> delete(K... key);
 
 	/**
-	 * Set the expiration for given {@code key} as a {@literal date} timestamp.
+	 * Delete given {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return The number of keys that were removed.
+	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
+	 */
+	Mono<Long> delete(Publisher<K> keys);
+
+	/**
+	 * Set time to live for given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param date must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
 	 * @return
 	 */
-	// Mono<Boolean> expireAt(K key, Date date);
+	Mono<Boolean> expire(K key, Duration timeout);
+
+	/**
+	 * Set the expiration for given {@code key} as a {@literal expireAt} timestamp.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expireAt must not be {@literal null}.
+	 * @return
+	 */
+	Mono<Boolean> expireAt(K key, Instant expireAt);
 
 	/**
 	 * Remove the expiration from given {@code key}.
@@ -151,7 +150,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/persist">Redis Documentation: PERSIST</a>
 	 */
-	// Mono<Boolean> persist(K key);
+	Mono<Boolean> persist(K key);
 
 	/**
 	 * Move given {@code key} to database with {@code index}.
@@ -161,91 +160,17 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/move">Redis Documentation: MOVE</a>
 	 */
-	// Mono<Boolean> move(K key, int dbIndex);
+	Mono<Boolean> move(K key, int dbIndex);
 
 	/**
-	 * Retrieve serialized version of the value stored at {@code key}.
+	 * Get the time to live for {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
-	 * @see <a href="http://redis.io/commands/dump">Redis Documentation: DUMP</a>
+	 * @return the {@link Duration} of the associated key. {@link Duration#ZERO} if no timeout associated or empty
+	 *         {@link Mono} if the key does not exist.
+	 * @see <a href="http://redis.io/commands/pttl">Redis Documentation: PTTL</a>
 	 */
-	// Mono<ByteBuffer> dump(K key);
-
-	/**
-	 * Create {@code key} using the {@code serializedValue}, previously obtained using {@link #dump(Object)}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param value must not be {@literal null}.
-	 * @param timeToLive
-	 * @param unit must not be {@literal null}.
-	 * @see <a href="http://redis.io/commands/restore">Redis Documentation: RESTORE</a>
-	 */
-	// Mono<Void> restore(K key, byte[] value, long timeToLive, TimeUnit unit);
-
-	/**
-	 * Get the time to live for {@code key} in seconds.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @return
-	 * @see <a href="http://redis.io/commands/ttl">Redis Documentation: TTL</a>
-	 */
-	// Mono<Long> getExpire(K key);
-
-	/**
-	 * Get the time to live for {@code key} in and convert it to the given {@link TimeUnit}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param timeUnit must not be {@literal null}.
-	 * @return
-	 */
-	// Mono<Long> getExpire(K key, TimeUnit timeUnit);
-
-	/**
-	 * Sort the elements for {@code query}.
-	 *
-	 * @param query must not be {@literal null}.
-	 * @return the results of sort.
-	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
-	 */
-	// Flux<V> sort(SortQuery<K> query);
-
-	/**
-	 * Sort the elements for {@code query} applying {@link RedisSerializer}.
-	 *
-	 * @param query must not be {@literal null}.
-	 * @return the deserialized results of sort.
-	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
-	 */
-	// <T> Flux<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer);
-
-	/**
-	 * Sort the elements for {@code query} applying {@link BulkMapper}.
-	 *
-	 * @param query must not be {@literal null}.
-	 * @return the deserialized results of sort.
-	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
-	 */
-	// <T> Flux<T> sort(SortQuery<K> query, BulkMapper<T, V> bulkMapper);
-
-	/**
-	 * Sort the elements for {@code query} applying {@link BulkMapper} and {@link RedisSerializer}.
-	 *
-	 * @param query must not be {@literal null}.
-	 * @return the deserialized results of sort.
-	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
-	 */
-	// <T, S> Flux<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper, RedisSerializer<S> resultSerializer);
-
-	/**
-	 * Sort the elements for {@code query} and store result in {@code storeKey}.
-	 *
-	 * @param query must not be {@literal null}.
-	 * @param storeKey must not be {@literal null}.
-	 * @return number of values.
-	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
-	 */
-	// Mono<Long> sort(SortQuery<K> query, K storeKey);
+	Mono<Duration> getExpire(K key);
 
 	// -------------------------------------------------------------------------
 	// Methods to obtain specific operations interface objects.

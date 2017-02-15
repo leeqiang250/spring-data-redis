@@ -15,8 +15,12 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.assertj.core.api.Assertions.*;
+
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 
 import org.junit.AfterClass;
@@ -110,7 +114,10 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		redisTemplate.opsForValue().set(oldName, valueFactory.instance()).block();
 
-		StepVerifier.create(redisTemplate.rename(oldName, newName)).expectNext(true).expectComplete().verify();
+		StepVerifier.create(redisTemplate.rename(oldName, newName)) //
+				.expectNext(true) //
+				.expectComplete() //
+				.verify();
 	}
 
 	@Test // DATAREDIS-602
@@ -123,10 +130,153 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.opsForValue().set(oldName, valueFactory.instance()).block();
 		redisTemplate.opsForValue().set(existing, valueFactory.instance()).block();
 
-		StepVerifier.create(redisTemplate.renameIfAbsent(oldName, newName)).expectNext(true).expectComplete().verify();
+		StepVerifier.create(redisTemplate.renameIfAbsent(oldName, newName)) //
+				.expectNext(true) //
+				.expectComplete() //
+				.verify();
 
 		redisTemplate.opsForValue().set(existing, valueFactory.instance()).block();
 
-		StepVerifier.create(redisTemplate.renameIfAbsent(newName, existing)).expectNext(false).expectComplete().verify();
+		StepVerifier.create(redisTemplate.renameIfAbsent(newName, existing)).expectNext(false) //
+				.expectComplete() //
+				.verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void expire() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key, value).block();
+
+		StepVerifier.create(redisTemplate.expire(key, Duration.ofSeconds(10))) //
+				.expectNext(true) //
+				.expectComplete() //
+				.verify();
+
+		StepVerifier.create(redisTemplate.getExpire(key)) //
+				.expectNextMatches(actual -> {
+
+					assertThat(actual).isGreaterThan(Duration.ofSeconds(8));
+					return true;
+				})//
+				.expectComplete() //
+				.verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void preciseExpire() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key, value).block();
+
+		StepVerifier.create(redisTemplate.expire(key, Duration.ofMillis(10_001))) //
+				.expectNext(true) //
+				.expectComplete() //
+				.verify();
+
+		StepVerifier.create(redisTemplate.getExpire(key)) //
+				.expectNextMatches(actual -> {
+
+					assertThat(actual).isGreaterThan(Duration.ofSeconds(8));
+					return true;
+				})//
+				.expectComplete() //
+				.verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void expireAt() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key, value).block();
+
+		Instant expireAt = Instant.ofEpochSecond(Instant.now().plus(Duration.ofSeconds(10)).getEpochSecond());
+
+		StepVerifier.create(redisTemplate.expireAt(key, expireAt)) //
+				.expectNext(true) //
+				.expectComplete() //
+				.verify();
+
+		StepVerifier.create(redisTemplate.getExpire(key)) //
+				.expectNextMatches(actual -> {
+
+					assertThat(actual).isGreaterThan(Duration.ofSeconds(8));
+					return true;
+				})//
+				.expectComplete() //
+				.verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void preciseExpireAt() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key, value).block();
+
+		Instant expireAt = Instant.ofEpochSecond(Instant.now().plus(Duration.ofSeconds(10)).getEpochSecond(), 5);
+
+		StepVerifier.create(redisTemplate.expireAt(key, expireAt)) //
+				.expectNext(true) //
+				.expectComplete() //
+				.verify();
+
+		StepVerifier.create(redisTemplate.getExpire(key)) //
+				.expectNextMatches(actual -> {
+
+					assertThat(actual).isGreaterThan(Duration.ofSeconds(8));
+					return true;
+				})//
+				.expectComplete() //
+				.verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void getTtlForAbsentKeyShouldCompleteWithoutValue() {
+
+		K key = keyFactory.instance();
+
+		StepVerifier.create(redisTemplate.getExpire(key)) //
+				.expectComplete() //
+				.verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void getTtlForKeyWithoutExpiryShouldCompleteWithZeroDuration() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key, value).block();
+
+		StepVerifier.create(redisTemplate.getExpire(key)) //
+				.expectNext(Duration.ZERO).expectComplete() //
+				.verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void move() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key, value).block();
+
+		StepVerifier.create(redisTemplate.move(key, 5)) //
+				.expectNext(true) //
+				.expectComplete() //
+				.verify();
+
+		StepVerifier.create(redisTemplate.hasKey(key)) //
+				.expectNext(false) //
+				.expectComplete() //
+				.verify();
 	}
 }
