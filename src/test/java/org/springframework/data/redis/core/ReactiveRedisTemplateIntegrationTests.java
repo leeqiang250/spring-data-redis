@@ -156,11 +156,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verify();
 
 		StepVerifier.create(redisTemplate.getExpire(key)) //
-				.expectNextMatches(actual -> {
-
-					assertThat(actual).isGreaterThan(Duration.ofSeconds(8));
-					return true;
-				})//
+				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8)))//
 				.expectComplete() //
 				.verify();
 	}
@@ -179,11 +175,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verify();
 
 		StepVerifier.create(redisTemplate.getExpire(key)) //
-				.expectNextMatches(actual -> {
-
-					assertThat(actual).isGreaterThan(Duration.ofSeconds(8));
-					return true;
-				})//
+				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))) //
 				.expectComplete() //
 				.verify();
 	}
@@ -204,11 +196,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verify();
 
 		StepVerifier.create(redisTemplate.getExpire(key)) //
-				.expectNextMatches(actual -> {
-
-					assertThat(actual).isGreaterThan(Duration.ofSeconds(8));
-					return true;
-				})//
+				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))) //
 				.expectComplete() //
 				.verify();
 	}
@@ -229,11 +217,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verify();
 
 		StepVerifier.create(redisTemplate.getExpire(key)) //
-				.expectNextMatches(actual -> {
-
-					assertThat(actual).isGreaterThan(Duration.ofSeconds(8));
-					return true;
-				})//
+				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))) //
 				.expectComplete() //
 				.verify();
 	}

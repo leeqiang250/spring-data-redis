@@ -175,11 +175,10 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		geoOperations.geoAdd(key, POINT_PALERMO, member1).block();
 		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
 
-		StepVerifier.create(geoOperations.geoDist(key, member1, member2)).expectNextMatches(actual -> {
+		StepVerifier.create(geoOperations.geoDist(key, member1, member2)).consumeNextWith(actual -> {
 
 			assertThat(actual.getValue()).isCloseTo(DISTANCE_PALERMO_CATANIA_METERS, offset(0.005));
 			assertThat(actual.getUnit()).isEqualTo("m");
-			return true;
 		}).expectComplete().verify();
 	}
 
@@ -193,11 +192,10 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		geoOperations.geoAdd(key, POINT_PALERMO, member1).block();
 		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
 
-		StepVerifier.create(geoOperations.geoDist(key, member1, member2, Metrics.KILOMETERS)).expectNextMatches(actual -> {
+		StepVerifier.create(geoOperations.geoDist(key, member1, member2, Metrics.KILOMETERS)).consumeNextWith(actual -> {
 
 			assertThat(actual.getValue()).isCloseTo(DISTANCE_PALERMO_CATANIA_KILOMETERS, offset(0.005));
 			assertThat(actual.getUnit()).isEqualTo("km");
-			return true;
 		}).expectComplete().verify();
 	}
 
@@ -241,11 +239,10 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		geoOperations.geoAdd(key, POINT_PALERMO, v1).block();
 
 		StepVerifier.create(geoOperations.geoPos(key, v1)) //
-				.expectNextMatches(actual -> {
+				.consumeNextWith(actual -> {
 
 					assertThat(actual.getX()).isCloseTo(POINT_PALERMO.getX(), offset(0.005));
 					assertThat(actual.getY()).isCloseTo(POINT_PALERMO.getY(), offset(0.005));
-					return true;
 				}).expectComplete() //
 				.verify();
 	}
@@ -262,14 +259,13 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		geoOperations.geoAdd(key, POINT_CATANIA, v2).block();
 
 		StepVerifier.create(geoOperations.geoPos(key, v1, v3, v2)) //
-				.expectNextMatches(actual -> {
+				.consumeNextWith(actual -> {
 
 					assertThat(actual.get(0).getX()).isCloseTo(POINT_PALERMO.getX(), offset(0.005));
 					assertThat(actual.get(0).getY()).isCloseTo(POINT_PALERMO.getY(), offset(0.005));
 
 					assertThat(actual.get(1)).isNull();
 					assertThat(actual.get(2)).isNotNull();
-					return true;
 				}).expectComplete() //
 				.verify();
 	}
@@ -285,10 +281,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
 
 		StepVerifier.create(geoOperations.geoRadius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS))))
-				.expectNextMatches(actual -> {
-					assertThat(actual).hasSize(2);
-					return true;
-				}).expectComplete().verify();
+				.consumeNextWith(actual -> assertThat(actual).hasSize(2)).expectComplete().verify();
 	}
 
 	@Test // DATAREDIS-602
@@ -302,7 +295,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
 
 		StepVerifier.create(geoOperations.geoRadius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)),
-				newGeoRadiusArgs().includeDistance().sortDescending())).expectNextMatches(actual -> {
+				newGeoRadiusArgs().includeDistance().sortDescending())).consumeNextWith(actual -> {
 					assertThat(actual).hasSize(2);
 
 					assertThat(actual.getContent().get(0).getDistance().getValue()).isCloseTo(190.4424d, offset(0.005));
@@ -310,8 +303,6 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 
 					assertThat(actual.getContent().get(1).getDistance().getValue()).isCloseTo(56.4413d, offset(0.005));
 					assertThat(actual.getContent().get(1).getContent().getName()).isEqualTo(member2);
-
-					return true;
 				}).expectComplete().verify();
 	}
 
@@ -326,10 +317,9 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
 
 		StepVerifier.create(geoOperations.geoRadius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS))))
-				.expectNextMatches(actual -> {
-					assertThat(actual).hasSize(2);
-					return true;
-				}).expectComplete().verify();
+				.consumeNextWith(actual -> assertThat(actual).hasSize(2)) //
+				.expectComplete() //
+				.verify();
 	}
 
 	@Test // DATAREDIS-602
@@ -344,15 +334,16 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
 		geoOperations.geoAdd(key, POINT_ARIGENTO, member3).block();
 
-		StepVerifier.create(geoOperations.geoRadiusByMember(key, member3, 100_000)).expectNextMatches(actual -> {
+		StepVerifier.create(geoOperations.geoRadiusByMember(key, member3, 100_000)) //
+				.consumeNextWith(actual -> {
 
-			assertThat(actual).hasSize(2);
+					assertThat(actual).hasSize(2);
 
-			assertThat(actual.get(0).getName()).isEqualTo(member3);
-			assertThat(actual.get(1).getName()).isEqualTo(member1);
-
-			return true;
-		}).expectComplete().verify();
+					assertThat(actual.get(0).getName()).isEqualTo(member3);
+					assertThat(actual.get(1).getName()).isEqualTo(member1);
+				}) //
+				.expectComplete() //
+				.verify();
 	}
 
 	@Test // DATAREDIS-602
@@ -368,14 +359,12 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		geoOperations.geoAdd(key, POINT_ARIGENTO, member3).block();
 
 		StepVerifier.create(geoOperations.geoRadiusByMember(key, member3, new Distance(100D, KILOMETERS)))
-				.expectNextMatches(actual -> {
+				.consumeNextWith(actual -> {
 
 					assertThat(actual).hasSize(2);
 
 					assertThat(actual.get(0).getName()).isEqualTo(member3);
 					assertThat(actual.get(1).getName()).isEqualTo(member1);
-
-					return true;
 				}).expectComplete().verify();
 	}
 
@@ -392,7 +381,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		geoOperations.geoAdd(key, POINT_ARIGENTO, member3).block();
 
 		StepVerifier.create(geoOperations.geoRadiusByMember(key, member3, new Distance(100D, KILOMETERS),
-				newGeoRadiusArgs().includeDistance().sortDescending())).expectNextMatches(actual -> {
+				newGeoRadiusArgs().includeDistance().sortDescending())).consumeNextWith(actual -> {
 
 					assertThat(actual).hasSize(2);
 
@@ -401,8 +390,6 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 
 					assertThat(actual.getContent().get(1).getDistance().getValue()).isCloseTo(0.0, offset(0.005));
 					assertThat(actual.getContent().get(1).getContent().getName()).isEqualTo(member3);
-
-					return true;
 				}).expectComplete().verify();
 	}
 

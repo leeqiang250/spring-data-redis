@@ -111,10 +111,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		StepVerifier.create(valueOperations.get(key)).expectNext(value).expectComplete().verify();
 
 		StepVerifier.create(redisTemplate.getExpire(key)) //
-				.expectNextMatches(actual -> {
-					assertThat(actual).isGreaterThan(Duration.ofSeconds(8));
-					return true;
-				}) //
+				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))) //
 				.expectComplete() //
 				.verify();
 
@@ -279,14 +276,12 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).expectComplete().verify();
 		StepVerifier.create(valueOperations.set(key, (V) "boo", 2)).expectNextCount(1).expectComplete().verify();
 
-		StepVerifier.create(valueOperations.get(key)).expectNextMatches(actual -> {
+		StepVerifier.create(valueOperations.get(key)).consumeNextWith(actual -> {
 
 			String string = (String) actual;
 			String prefix = value.toString().substring(0, 2);
 
 			assertThat(string).startsWith(prefix + "boo");
-			return true;
-
 		}).expectComplete().verify();
 	}
 
