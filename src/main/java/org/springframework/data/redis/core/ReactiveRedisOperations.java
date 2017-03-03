@@ -185,6 +185,29 @@ public interface ReactiveRedisOperations<K, V> {
 	ReactiveValueOperations<K, V> opsForValue();
 
 	/**
+	 * Returns the operations performed on list values.
+	 *
+	 * @return list operations
+	 */
+	ReactiveListOperations<K, V> opsForList();
+
+	/**
+	 * Returns the operations performed on multisets using HyperLogLog.
+	 *
+	 * @return never {@literal null}.
+	 */
+	ReactiveHyperLogLogOperations<K, V> opsForHyperLogLog();
+
+	/**
+	 * Returns the operations performed on hash values.
+	 *
+	 * @param <HK> hash key (or field) type
+	 * @param <HV> hash value type
+	 * @return hash operations
+	 */
+	<HK, HV> ReactiveHashOperations<K, HK, HV> opsForHash();
+
+	/**
 	 * Returns geospatial specific operations interface.
 	 *
 	 * @return never {@literal null}.

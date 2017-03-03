@@ -166,5 +166,8 @@ public interface ReactiveValueOperations<K, V> {
 	 */
 	Mono<Boolean> getBit(K key, long offset);
 
+	/**
+	 * @return
+	 */
 	ReactiveRedisOperations<K, V> getOperations();
 }

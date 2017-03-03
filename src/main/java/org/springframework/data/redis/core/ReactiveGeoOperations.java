@@ -221,5 +221,8 @@ public interface ReactiveGeoOperations<K, M> {
 	 */
 	Mono<Long> geoRemove(K key, M... members);
 
+	/**
+	 * @return
+	 */
 	ReactiveRedisOperations<K, M> getOperations();
 }

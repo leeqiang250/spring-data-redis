@@ -71,6 +71,8 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 
 	// cache singleton objects (where possible)
 	private ReactiveValueOperations<K, V> valueOps;
+	private ReactiveListOperations<K, V> listOps;
+	private ReactiveHyperLogLogOperations<K, V> hyperLogLogOps;
 	private ReactiveGeoOperations<K, V> geoOps;
 
 	/**
@@ -266,6 +268,31 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 	}
 
 	@Override
+	public ReactiveListOperations<K, V> opsForList() {
+
+		if (listOps == null) {
+			listOps = new DefaultReactiveListOperations<>(this);
+		}
+
+		return listOps;
+	}
+
+	@Override
+	public ReactiveHyperLogLogOperations<K, V> opsForHyperLogLog() {
+
+		if (hyperLogLogOps == null) {
+			hyperLogLogOps = new DefaultReactiveHyperLogLogOperations<K, V>(this);
+		}
+
+		return hyperLogLogOps;
+	}
+
+	@Override
+	public <HK, HV> ReactiveHashOperations<K, HK, HV> opsForHash() {
+		return new DefaultReactiveHashOperations<K, HK, HV>(this);
+	}
+
+	@Override
 	public ReactiveGeoOperations<K, V> opsForGeo() {
 
 		if (geoOps == null) {
@@ -435,9 +462,12 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#delete(java.lang.Object[])
 	 */
-	public Mono<Long> delete(K... keys) {
+	@SafeVarargs
+	public final Mono<Long> delete(K... keys) {
 
 		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notEmpty(keys, "Keys must not be empty!");
+		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
 		if (keys.length == 1) {
 			return createMono(connection -> connection.keyCommands().del(rawKey(keys[0])));
@@ -747,6 +777,7 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 		 * @see org.springframework.data.redis.serializer.RedisElementReader#read(java.nio.ByteBuffer)
 		 */
 		@Override
+		@SuppressWarnings("unchecked")
 		public T read(ByteBuffer buffer) {
 
 			if (serializer == null) {
