@@ -192,6 +192,20 @@ public interface ReactiveRedisOperations<K, V> {
 	ReactiveListOperations<K, V> opsForList();
 
 	/**
+	 * Returns the operations performed on set values.
+	 *
+	 * @return set operations
+	 */
+	ReactiveSetOperations<K, V> opsForSet();
+
+	/**
+	 * Returns the operations performed on zset values (also known as sorted sets).
+	 *
+	 * @return zset operations
+	 */
+	ReactiveZSetOperations<K, V> opsForZSet();
+
+	/**
 	 * Returns the operations performed on multisets using HyperLogLog.
 	 *
 	 * @return never {@literal null}.

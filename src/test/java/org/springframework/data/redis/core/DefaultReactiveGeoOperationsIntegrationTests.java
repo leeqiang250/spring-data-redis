@@ -106,7 +106,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldAddLocation() {
+	public void geoAdd() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
@@ -115,7 +115,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldAddGeoLocation() {
+	public void geoAddLocation() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
@@ -127,7 +127,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldAddMapOfLocations() {
+	public void geoAddMapOfLocations() {
 
 		K key = keyFactory.instance();
 
@@ -139,23 +139,23 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldAddIterableOfLocations() {
+	public void geoAddIterableOfLocations() {
 
 		K key = keyFactory.instance();
 
 		List<GeoLocation<V>> geoLocations = Arrays.asList(new GeoLocation<>(valueFactory.instance(), POINT_ARIGENTO),
-				new GeoLocation<V>(valueFactory.instance(), POINT_PALERMO));
+				new GeoLocation<>(valueFactory.instance(), POINT_PALERMO));
 
 		StepVerifier.create(geoOperations.geoAdd(key, geoLocations)).expectNext(2L).expectComplete().verify();
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldAddPublisherOfLocations() {
+	public void geoAddPublisherOfLocations() {
 
 		K key = keyFactory.instance();
 
 		List<GeoLocation<V>> batch1 = Arrays.asList(new GeoLocation<>(valueFactory.instance(), POINT_ARIGENTO),
-				new GeoLocation<V>(valueFactory.instance(), POINT_PALERMO));
+				new GeoLocation<>(valueFactory.instance(), POINT_PALERMO));
 
 		List<GeoLocation<V>> batch2 = Arrays.asList(new GeoLocation<>(valueFactory.instance(), POINT_CATANIA));
 
@@ -200,7 +200,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldReturnGeohash() {
+	public void geoHash() {
 
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
@@ -214,7 +214,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldReturnGeohashes() {
+	public void geoHashShouldReturnMultipleElements() {
 
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
@@ -231,7 +231,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldReturnGeopos() {
+	public void geoPos() {
 
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
@@ -248,7 +248,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldReturnGeopositions() {
+	public void geoPosShouldReturnMultipleElements() {
 
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
@@ -271,7 +271,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-438
-	public void geoRadiusShouldReturnMembersCorrectly() {
+	public void geoRadius() {
 
 		K key = keyFactory.instance();
 		V member1 = valueFactory.instance();
@@ -394,7 +394,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldRemoveGeolocation() {
+	public void geoRemove() {
 
 		K key = keyFactory.instance();
 		V member1 = valueFactory.instance();

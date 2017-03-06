@@ -45,6 +45,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
+@SuppressWarnings("unchecked")
 public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 	private final ReactiveRedisTemplate<K, V> redisTemplate;

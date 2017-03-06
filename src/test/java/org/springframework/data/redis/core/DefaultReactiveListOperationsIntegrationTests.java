@@ -40,6 +40,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
+@SuppressWarnings("unchecked")
 public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 
 	private final ReactiveRedisTemplate<K, V> redisTemplate;
@@ -84,7 +85,32 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldLeftPushElement() {
+	public void trim() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		StepVerifier.create(listOperations.rightPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
+
+		StepVerifier.create(listOperations.trim(key, 0, 0)).expectNext(true).expectComplete().verify();
+
+		StepVerifier.create(listOperations.size(key)).expectNext(1L).expectComplete().verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void size() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+
+		StepVerifier.create(listOperations.size(key)).expectNext(0L).expectComplete().verify();
+		StepVerifier.create(listOperations.rightPush(key, value1)).expectNext(1L).expectComplete().verify();
+		StepVerifier.create(listOperations.size(key)).expectNext(1L).expectComplete().verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void leftPush() {
 
 		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
 
@@ -100,7 +126,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldLeftPushElements() {
+	public void leftPushAll() {
 
 		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
 
@@ -115,37 +141,19 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldLeftPopElement() {
-
-		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
+	public void leftPushIfPresent() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(listOperations.leftPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
-
-		StepVerifier.create(listOperations.leftPop(key)).expectNext(value2).expectComplete().verify();
+		StepVerifier.create(listOperations.leftPushIfPresent(key, value1)).expectNext(0L).expectComplete().verify();
+		StepVerifier.create(listOperations.leftPush(key, value1)).expectNext(1L).expectComplete().verify();
+		StepVerifier.create(listOperations.leftPushIfPresent(key, value2)).expectNext(2L).expectComplete().verify();
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldLeftPopElementWithTimeout() {
-
-		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
-
-		K key = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		V value2 = valueFactory.instance();
-
-		StepVerifier.create(listOperations.leftPop(key, Duration.ofSeconds(1))).expectComplete().verify();
-
-		StepVerifier.create(listOperations.leftPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
-
-		StepVerifier.create(listOperations.leftPop(key, Duration.ZERO)).expectNext(value2).expectComplete().verify();
-	}
-
-	@Test // DATAREDIS-602
-	public void shouldLeftPushElementWithPivot() {
+	public void leftPushWithPivot() {
 
 		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
 
@@ -163,19 +171,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldLeftPushIfPresent() {
-
-		K key = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		V value2 = valueFactory.instance();
-
-		StepVerifier.create(listOperations.leftPushIfPresent(key, value1)).expectNext(0L).expectComplete().verify();
-		StepVerifier.create(listOperations.leftPush(key, value1)).expectNext(1L).expectComplete().verify();
-		StepVerifier.create(listOperations.leftPushIfPresent(key, value2)).expectNext(2L).expectComplete().verify();
-	}
-
-	@Test // DATAREDIS-602
-	public void shouldRightPushElement() {
+	public void rightPush() {
 
 		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
 
@@ -191,35 +187,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldRightPopElement() {
-
-		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
-
-		K key = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		V value2 = valueFactory.instance();
-
-		StepVerifier.create(listOperations.rightPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
-
-		StepVerifier.create(listOperations.rightPop(key)).expectNext(value2).expectComplete().verify();
-	}
-
-	@Test // DATAREDIS-602
-	public void shouldRightPopElementWithTimeout() {
-
-		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
-
-		K key = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		V value2 = valueFactory.instance();
-
-		StepVerifier.create(listOperations.rightPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
-
-		StepVerifier.create(listOperations.rightPop(key, Duration.ZERO)).expectNext(value2).expectComplete().verify();
-	}
-
-	@Test // DATAREDIS-602
-	public void shouldRightPushElements() {
+	public void rightPushAll() {
 
 		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
 
@@ -234,7 +202,19 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldRightPushElementWithPivot() {
+	public void rightPushIfPresent() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		StepVerifier.create(listOperations.rightPushIfPresent(key, value1)).expectNext(0L).expectComplete().verify();
+		StepVerifier.create(listOperations.rightPush(key, value1)).expectNext(1L).expectComplete().verify();
+		StepVerifier.create(listOperations.rightPushIfPresent(key, value2)).expectNext(2L).expectComplete().verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void rightPushWithPivot() {
 
 		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
 
@@ -252,19 +232,113 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldRightPushIfPresent() {
+	public void set() {
+
+		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(listOperations.rightPushIfPresent(key, value1)).expectNext(0L).expectComplete().verify();
-		StepVerifier.create(listOperations.rightPush(key, value1)).expectNext(1L).expectComplete().verify();
-		StepVerifier.create(listOperations.rightPushIfPresent(key, value2)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(listOperations.rightPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
+
+		StepVerifier.create(listOperations.set(key, 1, value1)).expectNext(true).expectComplete().verify();
+
+		StepVerifier.create(listOperations.range(key, 0, -1).flatMap(Flux::fromIterable)).expectNext(value1)
+				.expectNext(value1).expectComplete().verify();
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldRightPopAndLeftPush() {
+	public void remove() {
+
+		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		StepVerifier.create(listOperations.rightPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
+
+		StepVerifier.create(listOperations.remove(key, 1, value1)).expectNext(1L).expectComplete().verify();
+
+		StepVerifier.create(listOperations.range(key, 0, -1).flatMap(Flux::fromIterable)).expectNext(value2)
+				.expectComplete().verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void index() {
+
+		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		StepVerifier.create(listOperations.rightPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
+
+		StepVerifier.create(listOperations.index(key, 1)).expectNext(value2).expectComplete().verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void leftPop() {
+
+		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		StepVerifier.create(listOperations.leftPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
+
+		StepVerifier.create(listOperations.leftPop(key)).expectNext(value2).expectComplete().verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void rightPop() {
+
+		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		StepVerifier.create(listOperations.rightPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
+
+		StepVerifier.create(listOperations.rightPop(key)).expectNext(value2).expectComplete().verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void leftPopWithTimeout() {
+
+		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		StepVerifier.create(listOperations.leftPop(key, Duration.ofSeconds(1))).expectComplete().verify();
+
+		StepVerifier.create(listOperations.leftPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
+
+		StepVerifier.create(listOperations.leftPop(key, Duration.ZERO)).expectNext(value2).expectComplete().verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void rightPopWithTimeout() {
+
+		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		StepVerifier.create(listOperations.rightPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
+
+		StepVerifier.create(listOperations.rightPop(key, Duration.ZERO)).expectNext(value2).expectComplete().verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void rightPopAndLeftPush() {
 
 		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
 
@@ -281,7 +355,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldRightPopAndLeftPushWithTimeout() {
+	public void rightPopAndLeftPushWithTimeout() {
 
 		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
 
@@ -299,78 +373,5 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 
 		StepVerifier.create(listOperations.size(source)).expectNext(0L).expectComplete().verify();
 		StepVerifier.create(listOperations.size(target)).expectNext(1L).expectComplete().verify();
-	}
-
-	@Test // DATAREDIS-602
-	public void shouldReportListSize() {
-
-		K key = keyFactory.instance();
-		V value1 = valueFactory.instance();
-
-		StepVerifier.create(listOperations.size(key)).expectNext(0L).expectComplete().verify();
-		StepVerifier.create(listOperations.rightPush(key, value1)).expectNext(1L).expectComplete().verify();
-		StepVerifier.create(listOperations.size(key)).expectNext(1L).expectComplete().verify();
-	}
-
-	@Test // DATAREDIS-602
-	public void shouldTrim() {
-
-		K key = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		V value2 = valueFactory.instance();
-
-		StepVerifier.create(listOperations.rightPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
-
-		StepVerifier.create(listOperations.trim(key, 0, 0)).expectNext(true).expectComplete().verify();
-
-		StepVerifier.create(listOperations.size(key)).expectNext(1L).expectComplete().verify();
-	}
-
-	@Test // DATAREDIS-602
-	public void shouldSetAtPosition() {
-
-		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
-
-		K key = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		V value2 = valueFactory.instance();
-
-		StepVerifier.create(listOperations.rightPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
-
-		StepVerifier.create(listOperations.set(key, 1, value1)).expectNext(true).expectComplete().verify();
-
-		StepVerifier.create(listOperations.range(key, 0, -1).flatMap(Flux::fromIterable)).expectNext(value1)
-				.expectNext(value1).expectComplete().verify();
-	}
-
-	@Test // DATAREDIS-602
-	public void shouldRemoveAtPosition() {
-
-		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
-
-		K key = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		V value2 = valueFactory.instance();
-
-		StepVerifier.create(listOperations.rightPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
-
-		StepVerifier.create(listOperations.remove(key, 1, value1)).expectNext(1L).expectComplete().verify();
-
-		StepVerifier.create(listOperations.range(key, 0, -1).flatMap(Flux::fromIterable)).expectNext(value2)
-				.expectComplete().verify();
-	}
-
-	@Test // DATAREDIS-602
-	public void shouldGetAtPosition() {
-
-		assumeFalse(valueFactory instanceof ByteBufferObjectFactory);
-
-		K key = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		V value2 = valueFactory.instance();
-
-		StepVerifier.create(listOperations.rightPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
-
-		StepVerifier.create(listOperations.index(key, 1)).expectNext(value2).expectComplete().verify();
 	}
 }

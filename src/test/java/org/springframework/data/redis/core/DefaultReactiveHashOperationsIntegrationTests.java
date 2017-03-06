@@ -46,6 +46,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
+@SuppressWarnings("unchecked")
 public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 	private final ReactiveRedisTemplate<K, ?> redisTemplate;
@@ -108,17 +109,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldPutField() {
-
-		K key = keyFactory.instance();
-		HK hashkey = hashKeyFactory.instance();
-		HV hashvalue = hashValueFactory.instance();
-
-		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)).expectNext(true).expectComplete().verify();
-	}
-
-	@Test // DATAREDIS-602
-	public void shouldDeleteField() {
+	public void delete() {
 
 		K key = keyFactory.instance();
 		HK hashkey1 = hashKeyFactory.instance();
@@ -132,32 +123,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldPutFieldIfAbsent() {
-
-		K key = keyFactory.instance();
-		HK hashkey = hashKeyFactory.instance();
-		HV hashvalue = hashValueFactory.instance();
-		HV hashvalue2 = hashValueFactory.instance();
-
-		StepVerifier.create(hashOperations.putIfAbsent(key, hashkey, hashvalue)).expectNext(true).expectComplete().verify();
-		StepVerifier.create(hashOperations.putIfAbsent(key, hashkey, hashvalue2)).expectNext(false).expectComplete()
-				.verify();
-	}
-
-	@Test // DATAREDIS-602
-	public void shouldGetField() {
-
-		K key = keyFactory.instance();
-		HK hashkey = hashKeyFactory.instance();
-		HV hashvalue = hashValueFactory.instance();
-
-		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)).expectNext(true).expectComplete().verify();
-
-		StepVerifier.create(hashOperations.get(key, hashkey)).expectNextCount(1).expectComplete().verify();
-	}
-
-	@Test // DATAREDIS-602
-	public void shouldReturnHasKey() {
+	public void hasKey() {
 
 		K key = keyFactory.instance();
 		HK hashkey = hashKeyFactory.instance();
@@ -171,23 +137,19 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldPutAll() {
+	public void get() {
 
 		K key = keyFactory.instance();
-		HK hashkey1 = hashKeyFactory.instance();
-		HV hashvalue1 = hashValueFactory.instance();
+		HK hashkey = hashKeyFactory.instance();
+		HV hashvalue = hashValueFactory.instance();
 
-		HK hashkey2 = hashKeyFactory.instance();
-		HV hashvalue2 = hashValueFactory.instance();
+		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)).expectNext(true).expectComplete().verify();
 
-		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
-
-		StepVerifier.create(hashOperations.hasKey(key, hashkey1)).expectNext(true).expectComplete().verify();
-		StepVerifier.create(hashOperations.hasKey(key, hashkey2)).expectNext(true).expectComplete().verify();
+		StepVerifier.create(hashOperations.get(key, hashkey)).expectNextCount(1).expectComplete().verify();
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldMultiGet() {
+	public void multiGet() {
 
 		assumeTrue(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory);
 
@@ -206,26 +168,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldReturnEntries() {
-
-		assumeTrue(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory);
-
-		K key = keyFactory.instance();
-		HK hashkey1 = hashKeyFactory.instance();
-		HV hashvalue1 = hashValueFactory.instance();
-
-		HK hashkey2 = hashKeyFactory.instance();
-		HV hashvalue2 = hashValueFactory.instance();
-
-		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
-
-		StepVerifier.create(hashOperations.entries(key)).consumeNextWith(actual -> {
-			assertThat(actual).hasSize(2).containsEntry(hashkey1, hashvalue1).containsEntry(hashkey2, hashvalue2);
-		}).expectComplete().verify();
-	}
-
-	@Test // DATAREDIS-602
-	public void shouldIncrementValueLong() {
+	public void increment() {
 
 		assumeTrue(hashValueFactory instanceof StringObjectFactory);
 
@@ -239,7 +182,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldIncrementValueDouble() {
+	@SuppressWarnings("unchecked")
+	public void incrementDouble() {
 
 		assumeTrue(hashValueFactory instanceof StringObjectFactory);
 
@@ -253,7 +197,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldReturnKeys() {
+	public void keys() {
 
 		assumeTrue(hashKeyFactory instanceof StringObjectFactory);
 
@@ -272,7 +216,61 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldReturnValues() {
+	public void size() {
+
+		K key = keyFactory.instance();
+		HK hashkey1 = hashKeyFactory.instance();
+		HV hashvalue1 = hashValueFactory.instance();
+
+		HK hashkey2 = hashKeyFactory.instance();
+		HV hashvalue2 = hashValueFactory.instance();
+
+		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
+
+		StepVerifier.create(hashOperations.size(key)).expectNext(2L).expectComplete().verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void putAll() {
+
+		K key = keyFactory.instance();
+		HK hashkey1 = hashKeyFactory.instance();
+		HV hashvalue1 = hashValueFactory.instance();
+
+		HK hashkey2 = hashKeyFactory.instance();
+		HV hashvalue2 = hashValueFactory.instance();
+
+		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
+
+		StepVerifier.create(hashOperations.hasKey(key, hashkey1)).expectNext(true).expectComplete().verify();
+		StepVerifier.create(hashOperations.hasKey(key, hashkey2)).expectNext(true).expectComplete().verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void put() {
+
+		K key = keyFactory.instance();
+		HK hashkey = hashKeyFactory.instance();
+		HV hashvalue = hashValueFactory.instance();
+
+		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)).expectNext(true).expectComplete().verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void putIfAbsent() {
+
+		K key = keyFactory.instance();
+		HK hashkey = hashKeyFactory.instance();
+		HV hashvalue = hashValueFactory.instance();
+		HV hashvalue2 = hashValueFactory.instance();
+
+		StepVerifier.create(hashOperations.putIfAbsent(key, hashkey, hashvalue)).expectNext(true).expectComplete().verify();
+		StepVerifier.create(hashOperations.putIfAbsent(key, hashkey, hashvalue2)).expectNext(false).expectComplete()
+				.verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void values() {
 
 		assumeTrue(hashValueFactory instanceof StringObjectFactory);
 
@@ -291,7 +289,9 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldReturnSize() {
+	public void entries() {
+
+		assumeTrue(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory);
 
 		K key = keyFactory.instance();
 		HK hashkey1 = hashKeyFactory.instance();
@@ -302,7 +302,9 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.size(key)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(hashOperations.entries(key)).consumeNextWith(actual -> {
+			assertThat(actual).hasSize(2).containsEntry(hashkey1, hashvalue1).containsEntry(hashkey2, hashvalue2);
+		}).expectComplete().verify();
 	}
 
 	private void putAll(K key, HK hashkey1, HV hashvalue1, HK hashkey2, HV hashvalue2) {

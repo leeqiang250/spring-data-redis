@@ -111,8 +111,8 @@ public class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyper
 	}
 
 	/* (non-Javadoc)
-		 * @see org.springframework.data.redis.core.ReactiveValueOperations#getOperations()
-		 */
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#getOperations()
+	 */
 	@Override
 	public ReactiveRedisOperations<K, V> getOperations() {
 		return template;
@@ -126,11 +126,11 @@ public class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyper
 	}
 
 	private ByteBuffer rawKey(K key) {
-		return serialization().key().writer().write(key);
+		return serialization().key().write(key);
 	}
 
 	private ByteBuffer rawValue(V value) {
-		return serialization().value().writer().write(value);
+		return serialization().value().write(value);
 	}
 
 	private ReactiveSerializationContext<K, V> serialization() {

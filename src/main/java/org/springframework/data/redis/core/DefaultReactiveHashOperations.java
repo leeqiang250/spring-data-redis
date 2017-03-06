@@ -266,15 +266,15 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 	}
 
 	private ByteBuffer rawKey(H key) {
-		return serialization().key().writer().write(key);
+		return serialization().key().write(key);
 	}
 
 	private ByteBuffer rawHashKey(HK key) {
-		return serialization().hashKey().writer().write(key);
+		return serialization().hashKey().write(key);
 	}
 
 	private ByteBuffer rawHashValue(HV key) {
-		return serialization().hashValue().writer().write(key);
+		return serialization().hashValue().write(key);
 	}
 
 	@SuppressWarnings("unchecked")

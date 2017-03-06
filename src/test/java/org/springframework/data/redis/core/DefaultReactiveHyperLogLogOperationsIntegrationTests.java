@@ -35,6 +35,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
+@SuppressWarnings("unchecked")
 public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 
 	private final ReactiveRedisTemplate<K, V> redisTemplate;
@@ -79,7 +80,7 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldAdd() {
+	public void add() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -91,7 +92,7 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldMerge() {
+	public void union() {
 
 		K mergedKey = keyFactory.instance();
 		V sharedValue = valueFactory.instance();
@@ -110,7 +111,7 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void shouldDelete() {
+	public void delete() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();

@@ -72,6 +72,8 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 	// cache singleton objects (where possible)
 	private ReactiveValueOperations<K, V> valueOps;
 	private ReactiveListOperations<K, V> listOps;
+	private ReactiveSetOperations<K, V> setOps;
+	private ReactiveZSetOperations<K, V> zSetOps;
 	private ReactiveHyperLogLogOperations<K, V> hyperLogLogOps;
 	private ReactiveGeoOperations<K, V> geoOps;
 
@@ -275,6 +277,24 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 		}
 
 		return listOps;
+	}
+
+	public ReactiveSetOperations<K, V> opsForSet() {
+
+		if (setOps == null) {
+			setOps = new DefaultReactiveSetOperations<K, V>(this);
+		}
+
+		return setOps;
+	}
+
+	public ReactiveZSetOperations<K, V> opsForZSet() {
+
+		if (zSetOps == null) {
+			zSetOps = new DefaultReactiveZSetOperations<K, V>(this);
+		}
+
+		return zSetOps;
 	}
 
 	@Override

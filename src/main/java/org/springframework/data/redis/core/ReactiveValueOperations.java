@@ -158,7 +158,7 @@ public interface ReactiveValueOperations<K, V> {
 	Mono<Boolean> setBit(K key, long offset, boolean value);
 
 	/**
-	 * Get the bit value at {@code offset} of value at {@code key}.
+	 * « Get the bit value at {@code offset} of value at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param offset

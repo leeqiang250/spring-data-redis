@@ -373,15 +373,15 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 	}
 
 	private ByteBuffer rawKey(K key) {
-		return serialization().key().writer().write(key);
+		return serialization().key().write(key);
 	}
 
 	private ByteBuffer rawValue(V value) {
-		return serialization().value().writer().write(value);
+		return serialization().value().write(value);
 	}
 
 	private V readValue(ByteBuffer buffer) {
-		return serialization().value().reader().read(buffer);
+		return serialization().value().read(buffer);
 	}
 
 	private ReactiveSerializationContext<K, V> serialization() {
